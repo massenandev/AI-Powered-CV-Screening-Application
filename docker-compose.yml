@@ -1,0 +1,35 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: cvscreen
+      POSTGRES_USER: cvscreen
+      POSTGRES_PASSWORD: cvscreen
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cvscreen"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cvscreen:cvscreen@db:5432/cvscreen
+      CV_DIRECTORY: /data/cvs
+    volumes:
+      - ./data/cvs:/data/cvs:ro
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports: ["5173:80"]
+    depends_on: [api]
+volumes:
+  pgdata:
+

@@ -1,0 +1,23 @@
+[project]
+name = "cv-screening-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.14", "asyncpg>=0.30", "fastapi>=0.115", "httpx>=0.28",
+  "pgvector>=0.3", "pillow>=11", "pydantic-settings>=2.7", "pymupdf>=1.25",
+  "reportlab>=4.2", "sqlalchemy[asyncio]>=2.0", "uvicorn[standard]>=0.34"
+]
+[dependency-groups]
+dev = ["mypy>=1.14", "pytest>=8.3", "pytest-asyncio>=0.25", "ruff>=0.9"]
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+[tool.ruff]
+line-length = 100
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
