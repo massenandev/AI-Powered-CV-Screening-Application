@@ -7,7 +7,13 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_chat_service
-from app.api.schemas import AnswerResponse, ConversationResponse, ConversationsResponse, MessagesResponse, QuestionRequest
+from app.api.schemas import (
+    AnswerResponse,
+    ConversationResponse,
+    ConversationsResponse,
+    MessagesResponse,
+    QuestionRequest,
+)
 from app.application.services import ChatService
 from app.infrastructure.database import get_session
 from app.infrastructure.repositories import SqlConversationRepository, SqlDocumentRepository

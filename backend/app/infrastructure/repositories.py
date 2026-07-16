@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -21,8 +22,11 @@ class SqlDocumentRepository:
         return (await self.session.scalar(query)) is not None
 
     async def path_for(self, document_id: UUID) -> str | None:
-        return await self.session.scalar(
-            select(DocumentRow.path).where(DocumentRow.id == document_id)
+        return cast(
+            str | None,
+            await self.session.scalar(
+                select(DocumentRow.path).where(DocumentRow.id == document_id)
+            ),
         )
 
     async def replace_document(
