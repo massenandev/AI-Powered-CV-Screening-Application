@@ -62,7 +62,7 @@ class GeminiClient:
         if not self.api_key:
             raise RuntimeError("GEMINI_API_KEY is required for indexing and chat")
         last_error: Exception | None = None
-        for attempt in range(3):
+        for attempt in range(4):
             try:
                 async with httpx.AsyncClient(timeout=30) as client:
                     response = await client.post(
@@ -80,5 +80,18 @@ class GeminiClient:
                     and exc.response.status_code != 429
                 ):
                     break
-                await asyncio.sleep(0.25 * (2**attempt))
-        raise RuntimeError("Gemini provider request failed") from last_error
+                if attempt < 3:
+                    await asyncio.sleep(1 * (2**attempt))
+
+        if isinstance(last_error, httpx.HTTPStatusError):
+            status = last_error.response.status_code
+            if status == 429:
+                message = "Gemini request quota is exhausted. Check your Gemini plan or retry shortly."
+            elif status >= 500:
+                message = "Gemini is temporarily unavailable. Please retry shortly."
+            else:
+                message = f"Gemini rejected the request (HTTP {status}). Check the API key and model settings."
+            raise RuntimeError(message) from last_error
+        if isinstance(last_error, httpx.TimeoutException):
+            raise RuntimeError("Gemini request timed out. Please retry shortly.") from last_error
+        raise RuntimeError("Gemini network request failed. Please retry shortly.") from last_error
