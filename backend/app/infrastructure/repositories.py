@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import cast
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.models import Chunk, Citation, SearchResult
@@ -147,10 +147,14 @@ class SqlConversationRepository:
         await self.session.commit()
 
     async def messages(self, conversation_id: UUID, limit: int = 100) -> list[dict[str, object]]:
+        # PostgreSQL's `now()` is stable for a transaction, so the question and
+        # answer stored together commonly share a timestamp.  UUIDs are random
+        # and must not determine their display order.
+        role_order = case((MessageRow.role == "user", 0), else_=1)
         query = (
             select(MessageRow)
             .where(MessageRow.conversation_id == conversation_id)
-            .order_by(MessageRow.created_at, MessageRow.id)
+            .order_by(MessageRow.created_at, role_order, MessageRow.id)
             .limit(limit)
         )
         rows = (await self.session.scalars(query)).all()
